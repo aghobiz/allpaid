@@ -9,16 +9,16 @@
     <style>
         /* 웹 폰트 import */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap'); /* 로고용 폰트 */
+        @import url('https://fonts.googleapis.com/css2?family=Gmarket+Sans:wght@700&display=swap');
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #F2F4F6; /* 토스 배경색 */
+            background-color: #F2F4F6;
         }
         .font-logo {
-            font-family: 'Jua', sans-serif; /* 로고 폰트 클래스 */
+            font-family: 'Gmarket Sans', sans-serif;
+            font-weight: 700;
         }
-        /* 화면 전환 애니메이션 */
         .screen {
             display: none;
             animation: fadeIn 0.3s ease-in-out;
@@ -30,14 +30,12 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        /* 플로팅 액션 버튼 */
         .fab {
             position: fixed;
             bottom: 80px;
             right: 20px;
             z-index: 50;
         }
-        /* 커스텀 메인 블루 */
         .bg-main-blue { background-color: #00AEFF; }
         .text-main-blue { color: #00AEFF; }
         .border-main-blue { border-color: #00AEFF; }
@@ -91,10 +89,7 @@
                     </button>
                 </header>
                 <div id="group-list-container">
-                    <h2 class="text-2xl font-bold text-gray-800 my-4">내가 관리하는 모임</h2>
-                    <div id="group-list" class="space-y-4">
-                        <!-- 모임 목록이 여기에 동적으로 렌더링됩니다. -->
-                    </div>
+                    <!-- 모임 목록이 여기에 동적으로 렌더링됩니다. -->
                 </div>
             </div>
 
@@ -123,22 +118,16 @@
 
                 <div id="ongoing-projects-section" class="mb-6" style="display: none;">
                     <h3 class="text-xl font-bold text-gray-800 mb-3">모금중인 프로젝트</h3>
-                    <div id="ongoing-project-list" class="space-y-2">
-                        <!-- 모금중인 프로젝트가 여기에 동적으로 렌더링됩니다. -->
-                    </div>
+                    <div id="ongoing-project-list" class="space-y-2"></div>
                 </div>
 
                 <div class="mb-6">
                     <h3 class="text-xl font-bold text-gray-800 mb-3">멤버 <span id="member-count">0</span></h3>
-                    <div id="member-list-horizontal" class="flex space-x-3 overflow-x-auto pb-2">
-                        <!-- 멤버 목록이 여기에 동적으로 렌더링됩니다. -->
-                    </div>
+                    <div id="member-list-horizontal" class="flex space-x-3 overflow-x-auto pb-2"></div>
                 </div>
                 <div>
                     <h3 class="text-xl font-bold text-gray-800 mb-3">전체 활동 내역</h3>
-                    <div id="activity-feed" class="space-y-2">
-                        <!-- 활동 피드가 여기에 동적으로 렌더링됩니다. -->
-                    </div>
+                    <div id="activity-feed" class="space-y-2"></div>
                 </div>
             </div>
 
@@ -195,9 +184,7 @@
                         </div>
                         <button id="add-project-member-btn" class="text-main-blue font-bold text-sm"><i class="fas fa-plus-circle mr-1"></i>멤버 추가</button>
                     </div>
-                    <div id="member-list-vertical" class="space-y-3">
-                        <!-- 멤버 목록이 여기에 동적으로 렌더링됩니다. -->
-                    </div>
+                    <div id="member-list-vertical" class="space-y-3"></div>
                 </div>
             </div>
             
@@ -276,9 +263,7 @@
                 <header class="flex items-center mb-8">
                      <h1 class="text-3xl font-extrabold text-gray-800">알림</h1>
                 </header>
-                <div id="notification-list" class="space-y-2">
-                   <!-- 알림 목록이 여기에 동적으로 렌더링됩니다. -->
-                </div>
+                <div id="notification-list" class="space-y-2"></div>
             </div>
 
             <!-- 마이페이지 화면 -->
