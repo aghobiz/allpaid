@@ -1,0 +1,67 @@
+/* 웹 폰트 import */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Gmarket+Sans:wght@700&display=swap'); /* 로고용 폰트 */
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #F2F4F6; /* 토스 배경색 */
+}
+.font-logo {
+    font-family: 'Gmarket Sans', sans-serif; /* 로고 폰트 클래스 */
+    font-weight: 700; /* Gmarket Sans Bold */
+}
+/* 화면 전환 애니메이션 */
+.screen {
+    display: none;
+    animation: fadeIn 0.3s ease-in-out;
+}
+.screen.active {
+    display: block;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+/* 플로팅 액션 버튼 */
+.fab {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    z-index: 50;
+}
+/* 커스텀 메인 블루 */
+.bg-main-blue { background-color: #00AEFF; }
+.text-main-blue { color: #00AEFF; }
+.border-main-blue { border-color: #00AEFF; }
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+.modal-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+.modal-content {
+    background-color: white;
+    padding: 24px;
+    border-radius: 24px;
+    width: 90%;
+    max-width: 400px;
+    transform: scale(0.9);
+    transition: transform 0.3s;
+}
+.modal-overlay.visible .modal-content {
+    transform: scale(1);
+}
