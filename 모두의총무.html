@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>모두의 총무</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 웹 폰트 import */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap'); /* 로고용 폰트 */
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F2F4F6; /* 토스 배경색 */
+        }
+        .font-logo {
+            font-family: 'Jua', sans-serif; /* 로고 폰트 클래스 */
+        }
+        /* 화면 전환 애니메이션 */
+        .screen {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .screen.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* 플로팅 액션 버튼 */
+        .fab {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            z-index: 50;
+        }
+        /* 커스텀 메인 블루 */
+        .bg-main-blue { background-color: #00AEFF; }
+        .text-main-blue { color: #00AEFF; }
+        .border-main-blue { border-color: #00AEFF; }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 24px;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 400px;
+            transform: scale(0.9);
+            transition: transform 0.3s;
+        }
+        .modal-overlay.visible .modal-content {
+            transform: scale(1);
+        }
+    </style>
+</head>
+<body class="bg-F2F4F6">
+
+    <div id="app" class="max-w-md mx-auto bg-F2F4F6 min-h-screen">
+
+        <!-- 화면 컨테이너 -->
+        <main id="main-content" class="p-5 pb-24">
+            <!-- 홈 화면 (모임 목록) -->
+            <div id="home-screen" class="screen active">
+                <header class="flex justify-between items-center mb-8">
+                    <h1 class="font-logo text-4xl text-main-blue">모두의 총무</h1>
+                    <button id="add-group-btn" class="bg-white px-4 py-2 rounded-lg shadow-sm flex items-center text-main-blue font-bold transition-transform hover:scale-105">
+                        <i class="fas fa-plus mr-2"></i>
+                        <span>새 모임</span>
+                    </button>
+                </header>
+                <div id="group-list-container">
+                    <h2 class="text-2xl font-bold text-gray-800 my-4">내가 관리하는 모임</h2>
+                    <div id="group-list" class="space-y-4">
+                        <!-- 모임 목록이 여기에 동적으로 렌더링됩니다. -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 모임 상세 화면 (대시보드) -->
+            <div id="group-detail-screen" class="screen">
+                <header class="flex items-center mb-6">
+                    <button class="back-btn text-2xl mr-4 text-gray-500"><i class="fas fa-arrow-left"></i></button>
+                    <h1 id="group-detail-title" class="text-3xl font-extrabold text-gray-800"></h1>
+                </header>
+                <div class="bg-white p-6 rounded-2xl shadow-sm mb-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <div class="flex items-center">
+                            <img id="bank-logo" src="" alt="Bank Logo" class="w-6 h-6 mr-2 rounded-full object-contain">
+                            <p id="bank-name" class="text-gray-500 font-semibold"></p>
+                        </div>
+                        <button class="copy-account-btn bg-gray-100 text-gray-600 px-3 py-1 rounded-md text-sm font-semibold">복사</button>
+                    </div>
+                    <p id="group-balance" class="text-4xl font-extrabold text-gray-800">0원</p>
+                    <p id="account-number" class="text-md text-gray-500 mt-1"></p>
+                    <div class="border-t my-4"></div>
+                    <div class="flex space-x-2">
+                        <button class="flex-1 bg-gray-100 text-gray-800 font-bold py-3 rounded-lg">내역 새로고침</button>
+                        <button class="flex-1 bg-main-blue text-white font-bold py-3 rounded-lg">회비 요청</button>
+                    </div>
+                </div>
+
+                <div id="ongoing-projects-section" class="mb-6" style="display: none;">
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">모금중인 프로젝트</h3>
+                    <div id="ongoing-project-list" class="space-y-2">
+                        <!-- 모금중인 프로젝트가 여기에 동적으로 렌더링됩니다. -->
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">멤버 <span id="member-count">0</span></h3>
+                    <div id="member-list-horizontal" class="flex space-x-3 overflow-x-auto pb-2">
+                        <!-- 멤버 목록이 여기에 동적으로 렌더링됩니다. -->
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">전체 활동 내역</h3>
+                    <div id="activity-feed" class="space-y-2">
+                        <!-- 활동 피드가 여기에 동적으로 렌더링됩니다. -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 프로젝트 상세 화면 (대시보드) -->
+            <div id="project-detail-screen" class="screen">
+                <header class="flex items-center justify-between mb-8">
+                    <div class="flex items-center">
+                        <button class="back-btn text-2xl mr-4 text-gray-500"><i class="fas fa-arrow-left"></i></button>
+                        <h1 id="project-detail-title" class="text-3xl font-extrabold text-gray-800"></h1>
+                    </div>
+                </header>
+                <div class="bg-white p-5 rounded-2xl mb-4 shadow-sm">
+                    <h3 class="font-bold text-main-blue mb-3">모집 현황</h3>
+                    <div class="bg-gray-100 p-3 rounded-lg">
+                        <p class="text-sm text-gray-500 mb-1">참가 신청 링크</p>
+                        <div class="flex justify-between items-center">
+                            <p id="project-link-text" class="text-gray-700 font-mono text-sm truncate flex-1" style="direction: rtl; text-align: left;"></p>
+                            <div class="flex space-x-2 ml-2">
+                               <button id="check-project-link-btn" class="bg-main-blue text-white px-3 py-2 rounded-lg text-sm font-bold">확인</button>
+                               <button id="copy-project-link-btn" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-bold">복사</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl mb-4 shadow-sm">
+                    <h3 class="font-bold text-main-blue mb-3">실시간 정산 현황</h3>
+                    <div class="flex justify-between text-sm font-medium text-gray-700 mb-2">
+                        <span id="progress-text">0원 / 0원</span>
+                        <span id="progress-member-text">0/0명</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div id="progress-bar" class="bg-main-blue h-2.5 rounded-full" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <button id="simulate-deposit-btn" class="bg-green-100 text-green-700 font-bold py-4 rounded-xl text-lg flex flex-col items-center justify-center">
+                        <i class="fas fa-magic text-2xl mb-1"></i>
+                        <span>입금 시뮬</span>
+                    </button>
+                    <button id="generate-report-btn" class="bg-blue-100 text-main-blue font-bold py-4 rounded-xl text-lg flex flex-col items-center justify-center">
+                        <i class="fas fa-file-invoice-dollar text-2xl mb-1"></i>
+                        <span>정산 보고서</span>
+                    </button>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center border-b mb-4">
+                        <div class="flex">
+                            <button data-tab="all" class="tab-btn py-3 px-4 font-bold text-main-blue border-b-2 border-main-blue">전체</button>
+                            <button data-tab="paid" class="tab-btn py-3 px-4 font-bold text-gray-500">입금 완료</button>
+                            <button data-tab="unpaid" class="tab-btn py-3 px-4 font-bold text-gray-500">입금 대기</button>
+                            <button data-tab="cancelled" class="tab-btn py-3 px-4 font-bold text-gray-500">취소</button>
+                        </div>
+                        <button id="add-project-member-btn" class="text-main-blue font-bold text-sm"><i class="fas fa-plus-circle mr-1"></i>멤버 추가</button>
+                    </div>
+                    <div id="member-list-vertical" class="space-y-3">
+                        <!-- 멤버 목록이 여기에 동적으로 렌더링됩니다. -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 새 모임 만들기 화면 -->
+            <div id="add-group-screen" class="screen">
+                 <header class="flex items-center mb-8">
+                    <button class="back-btn text-2xl mr-4 text-gray-500"><i class="fas fa-arrow-left"></i></button>
+                    <h1 class="text-3xl font-extrabold text-gray-800">새 모임 만들기</h1>
+                </header>
+                <form id="add-group-form" class="space-y-6 pb-20">
+                    <div>
+                        <label for="group-name" class="block text-lg font-bold text-gray-700 mb-2">모임 이름</label>
+                        <input type="text" id="group-name" class="mt-1 block w-full px-4 py-3 bg-white border-transparent rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-main-blue" placeholder="예: 늘봄 중앙동아리" required>
+                    </div>
+                    <div>
+                        <label for="group-desc" class="block text-lg font-bold text-gray-700 mb-2">모임 설명</label>
+                        <input type="text" id="group-desc" class="mt-1 block w-full px-4 py-3 bg-white border-transparent rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-main-blue" placeholder="예: 중앙 기타 동아리">
+                    </div>
+                    <div class="border-t pt-6">
+                         <label for="group-bank" class="block text-lg font-bold text-gray-700 mb-2">연동할 모임통장</label>
+                         <select id="group-bank" class="mt-1 block w-full px-4 py-3 bg-white border-transparent rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-main-blue">
+                            <option>카카오뱅크</option>
+                            <option>토스뱅크</option>
+                            <option>KB국민은행</option>
+                            <option>신한은행</option>
+                            <option>하나은행</option>
+                         </select>
+                         <input type="text" id="group-account-number" class="mt-2 block w-full px-4 py-3 bg-white border-transparent rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-main-blue" placeholder="계좌번호 ('-' 없이 입력)" required>
+                         <input type="text" id="group-account-holder" class="mt-2 block w-full px-4 py-3 bg-white border-transparent rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-main-blue" placeholder="예금주명" required>
+                    </div>
+                    <button type="submit" class="w-full bg-main-blue text-white font-bold py-4 rounded-xl text-lg transition-transform hover:scale-105 fixed bottom-20 left-1/2 -translate-x-1/2 max-w-md w-11/12">저장하기</button>
+                </form>
+            </div>
+
+            <!-- 새 활동 추가 화면 -->
+            <div id="add-activity-screen" class="screen">
+                 <header class="flex items-center mb-8">
+                    <button class="back-btn text-2xl mr-4 text-gray-500"><i class="fas fa-arrow-left"></i></button>
+                    <h1 class="text-3xl font-extrabold text-gray-800">새 활동 추가</h1>
+                </header>
+                <div class="flex border-b mb-6">
+                    <button data-form="project" class="form-tab-btn flex-1 pb-3 font-bold text-main-blue border-b-2 border-main-blue">프로젝트</button>
+                    <button data-form="expense" class="form-tab-btn flex-1 pb-3 font-bold text-gray-500">지출</button>
+                </div>
+                
+                <form id="add-project-form" class="space-y-6 pb-20">
+                    <div>
+                        <label for="project-name" class="block text-lg font-bold text-gray-700 mb-2">프로젝트 이름</label>
+                        <input type="text" id="project-name" class="mt-1 block w-full px-4 py-3 bg-white border-transparent rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-main-blue" placeholder="예: 2025 여름 MT" required>
+                    </div>
+                    <div>
+                        <label for="project-fee" class="block text-lg font-bold text-gray-700 mb-2">1인당 회비 (원)</label>
+                        <input type="number" id="project-fee" class="mt-1 block w-full px-4 py-3 bg-white border-transparent rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-main-blue" placeholder="50000" required>
+                    </div>
+                     <div>
+                        <label for="project-description" class="block text-lg font-bold text-gray-700 mb-2">참가 안내 문구</label>
+                        <textarea id="project-description" rows="4" class="mt-1 block w-full px-4 py-3 bg-white border-transparent rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-main-blue" placeholder="예: 선착순 30명, 문의: 김총무(010-1234-5678)"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-main-blue text-white font-bold py-4 rounded-xl text-lg transition-transform hover:scale-105 fixed bottom-20 left-1/2 -translate-x-1/2 max-w-md w-11/12">프로젝트 생성하기</button>
+                </form>
+                <form id="add-expense-form" class="hidden space-y-6 pb-20">
+                    <div>
+                        <label for="expense-desc" class="block text-lg font-bold text-gray-700 mb-2">지출 내역</label>
+                        <input type="text" id="expense-desc" class="mt-1 block w-full px-4 py-3 bg-white border-transparent rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-main-blue" placeholder="예: MT 장보기 (이마트)" required>
+                    </div>
+                    <div>
+                        <label for="expense-amount" class="block text-lg font-bold text-gray-700 mb-2">지출 금액 (원)</label>
+                        <input type="number" id="expense-amount" class="mt-1 block w-full px-4 py-3 bg-white border-transparent rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-main-blue" placeholder="150000" required>
+                    </div>
+                    <button type="submit" class="w-full bg-main-blue text-white font-bold py-4 rounded-xl text-lg transition-transform hover:scale-105 fixed bottom-20 left-1/2 -translate-x-1/2 max-w-md w-11/12">지출 기록하기</button>
+                </form>
+            </div>
+
+            <!-- 알림 화면 -->
+            <div id="notifications-screen" class="screen">
+                <header class="flex items-center mb-8">
+                     <h1 class="text-3xl font-extrabold text-gray-800">알림</h1>
+                </header>
+                <div id="notification-list" class="space-y-2">
+                   <!-- 알림 목록이 여기에 동적으로 렌더링됩니다. -->
+                </div>
+            </div>
+
+            <!-- 마이페이지 화면 -->
+            <div id="my-page-screen" class="screen">
+                <header class="flex items-center mb-8">
+                     <h1 class="text-3xl font-extrabold text-gray-800">마이페이지</h1>
+                </header>
+                <div class="bg-white p-6 rounded-2xl shadow-sm mb-6">
+                    <div class="flex items-center">
+                        <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center text-3xl mr-4">👤</div>
+                        <div>
+                            <p class="text-2xl font-bold text-gray-800">김총무 님</p>
+                            <p class="text-gray-500">modu@chongmu.com</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                     <a href="#" class="flex items-center justify-between p-4 bg-white rounded-lg text-lg font-semibold text-gray-700"><span><i class="fas fa-bullhorn w-6 mr-2 text-gray-400"></i> 공지사항</span> <i class="fas fa-chevron-right text-gray-400"></i></a>
+                     <a href="#" class="flex items-center justify-between p-4 bg-white rounded-lg text-lg font-semibold text-gray-700"><span><i class="fas fa-headset w-6 mr-2 text-gray-400"></i> 고객센터</span> <i class="fas fa-chevron-right text-gray-400"></i></a>
+                     <a href="#" class="flex items-center justify-between p-4 bg-white rounded-lg text-lg font-semibold text-gray-700"><span><i class="fas fa-file-alt w-6 mr-2 text-gray-400"></i> 이용약관</span> <i class="fas fa-chevron-right text-gray-400"></i></a>
+                     <a href="#" class="flex items-center justify-between p-4 bg-white rounded-lg text-lg font-semibold text-gray-700"><span><i class="fas fa-sign-out-alt w-6 mr-2 text-gray-400"></i> 로그아웃</span> <i class="fas fa-chevron-right text-gray-400"></i></a>
+                </div>
+            </div>
+            
+            <!-- [신규] 참가 신청 화면 -->
+            <div id="applicant-form-screen" class="screen">
+                <header class="flex justify-between items-center mb-6">
+                    <h1 id="applicant-form-title" class="text-3xl font-extrabold text-gray-800"></h1>
+                    <button id="close-applicant-view-btn" class="text-2xl text-gray-400">&times;</button>
+                </header>
+                <div class="bg-white p-6 rounded-2xl shadow-sm mb-6">
+                    <p id="applicant-form-description" class="text-gray-600 mb-4 whitespace-pre-wrap"></p>
+                    <div class="border-t pt-4">
+                        <p id="applicant-form-fee" class="text-gray-600"></p>
+                        <p id="applicant-form-group" class="text-gray-500 text-sm"></p>
+                    </div>
+                </div>
+                <form id="apply-form" class="space-y-6">
+                    <div>
+                        <label for="applicant-name" class="block text-lg font-bold text-gray-700 mb-2">이름</label>
+                        <input type="text" id="applicant-name" class="mt-1 block w-full px-4 py-3 bg-white border-transparent rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-main-blue" placeholder="실명을 입력해주세요" required>
+                    </div>
+                    <button type="submit" class="w-full bg-main-blue text-white font-bold py-4 rounded-xl text-lg transition-transform hover:scale-105">신청하기</button>
+                </form>
+            </div>
+            
+            <!-- [신규] 신청자 상태 확인 화면 -->
+            <div id="applicant-status-screen" class="screen">
+                 <header class="flex justify-between items-center mb-6">
+                    <h1 id="applicant-status-title" class="text-3xl font-extrabold text-gray-800"></h1>
+                    <button id="close-applicant-status-btn" class="text-2xl text-gray-400">&times;</button>
+                </header>
+                <div id="applicant-status-content" class="text-center">
+                    <!-- 신청 상태에 따라 내용이 동적으로 변경됩니다. -->
+                </div>
+            </div>
+
+        </main>
+        
+        <!-- 하단 네비게이션 바 -->
+        <nav id="main-nav" class="fixed bottom-0 left-1/2 -translate-x-1/2 max-w-md w-full bg-white/80 backdrop-blur-sm border-t border-gray-200 flex justify-around py-2">
+            <button data-target="home-screen" class="nav-btn flex flex-col items-center w-20 text-main-blue">
+                <i class="fas fa-home text-2xl"></i>
+                <span class="text-xs font-bold mt-1">홈</span>
+            </button>
+            <button data-target="notifications-screen" class="nav-btn flex flex-col items-center w-20 text-gray-400">
+                <i class="fas fa-bell text-2xl"></i>
+                <span class="text-xs font-bold mt-1">알림</span>
+            </button>
+            <button data-target="my-page-screen" class="nav-btn flex flex-col items-center w-20 text-gray-400">
+                <i class="fas fa-user text-2xl"></i>
+                <span class="text-xs font-bold mt-1">마이페이지</span>
+            </button>
+        </nav>
+        
+        <!-- 플로팅 액션 버튼 (활동 추가) -->
+        <button id="add-activity-fab" class="fab bg-main-blue text-white w-16 h-16 rounded-full shadow-lg flex items-center justify-center text-3xl transition-transform hover:rotate-90">
+            <i class="fas fa-plus"></i>
+        </button>
+
+        <!-- 정산/지출 상세 모달 -->
+        <div id="detail-modal" class="modal-overlay">
+            <div id="modal-content-area" class="modal-content">
+                <!-- 내용이 여기에 동적으로 삽입됩니다. -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- 상태 관리 (Mock Database) ---
+            let state = {
+                groups: [
+                    { id: 1, name: '한아울', description: '중앙 기타 동아리', icon: '🎸', bank: '카카오뱅크', accountNumber: '3333-01-1234567', accountHolder: '김총무' },
+                    { id: 2, name: 'Project X', description: '창업 동아리', icon: '💡', bank: '토스뱅크', accountNumber: '190-123-456789', accountHolder: '박대표' },
+                ],
+                activities: [
+                    { type: 'project', id: 1, groupId: 1, name: '여름 정기공연', createdAt: '2025-07-01', fee: 30000, description: '🎸 한아울 여름 정기공연 참가 신청 🎸\n\n- 일시: 2025년 8월 15일\n- 회비: 30,000원 (뒷풀이 비용 포함)\n- 문의: 총무 김기타 (010-0000-0000)', virtualAccountNumber: '012-3456-7890-01', members: [
+                        { name: '김기타', feeToPay: 30000, status: 'paid' }, { name: '이보컬', feeToPay: 30000, status: 'paid' },
+                        { name: '박드럼', feeToPay: 30000, status: 'unpaid' }, { name: '최베이스', feeToPay: 30000, status: 'paid' },
+                    ]},
+                    { type: 'expense', id: 2, groupId: 1, description: '공연장 대관료', createdAt: '2025-07-03', amount: 50000 },
+                    { type: 'expense', id: 3, groupId: 1, description: '뒤풀이 비용', createdAt: '2025-07-05', amount: 75000 },
+                ],
+                notifications: [
+                    { id: 1, icon: 'fa-won-sign', color: 'text-main-blue', message: '<strong>김기타</strong> 님이 <strong>30,000원</strong>을 입금했어요.', time: '5분 전'},
+                    { id: 2, icon: 'fa-calendar-check', color: 'text-green-500', message: '<strong>여름 정기공연</strong> 프로젝트가 생성되었어요.', time: '1시간 전'},
+                    { id: 3, icon: 'fa-exclamation-circle', color: 'text-red-500', message: '<strong>의공인의 밤</strong> 회비 납부 마감일이 3일 남았어요.', time: '어제'},
+                ],
+                currentGroupId: null,
+                currentProjectId: null,
+                currentApplicant: null, // 신청자 정보 저장
+                nextGroupId: 3,
+                nextActivityId: 4,
+            };
+
+            const bankLogos = {
+                '카카오뱅크': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Kakaobank_logo.svg/1200px-Kakaobank_logo.svg.png',
+                '토스뱅크': 'https://static.toss.im/assets/png/logo_toss-bank-simbol.png',
+                'KB국민은행': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/KB_Kookmin_Bank_logo.svg/1280px-KB_Kookmin_Bank_logo.svg.png',
+                '신한은행': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Shinhan_Bank_Logo.svg/1280px-Shinhan_Bank_Logo.svg.png',
+                '하나은행': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Hana_Bank_logo.svg/2560px-Hana_Bank_logo.svg.png'
+            };
+
+            const mainContent = document.getElementById('main-content');
+            const fab = document.getElementById('add-activity-fab');
+            const modal = document.getElementById('detail-modal');
+            const modalContent = document.getElementById('modal-content-area');
+            const mainNav = document.getElementById('main-nav');
+
+            // --- 화면 전환 로직 ---
+            const screens = document.querySelectorAll('.screen');
+            const navButtons = document.querySelectorAll('.nav-btn');
+            const backButtons = document.querySelectorAll('.back-btn');
+
+            function navigateTo(screenId, isApplicantView = false) {
+                let targetScreen = document.getElementById(screenId);
+                if (!targetScreen) return;
+                
+                screens.forEach(s => s.classList.remove('active'));
+                targetScreen.classList.add('active');
+                mainContent.scrollTop = 0;
+
+                fab.style.display = (screenId === 'group-detail-screen') ? 'flex' : 'none';
+                mainNav.style.display = isApplicantView ? 'none' : 'flex';
+
+                if (!isApplicantView) {
+                    navButtons.forEach(btn => {
+                        if (btn.dataset.target === screenId) {
+                            btn.classList.remove('text-gray-400');
+                            btn.classList.add('text-main-blue');
+                        } else {
+                            btn.classList.remove('text-main-blue');
+                            btn.classList.add('text-gray-400');
+                        }
+                    });
+                }
+            }
+            
+            function renderGroups() {
+                const groupListContainer = document.getElementById('group-list-container');
+                if (state.groups.length === 0) {
+                    groupListContainer.innerHTML = `<div class="text-center py-16 bg-white rounded-2xl"><p class="text-gray-500">아직 관리하는 모임이 없어요.</p><p class="text-gray-500">새 모임을 만들어 시작해보세요!</p></div>`;
+                } else {
+                    groupListContainer.innerHTML = `<h2 class="text-2xl font-bold text-gray-800 my-4">내가 관리하는 모임</h2><div id="group-list" class="space-y-4"></div>`;
+                    const listEl = document.getElementById('group-list');
+                    listEl.innerHTML = ''; // Clear previous list
+                    state.groups.forEach(group => {
+                        const groupCard = `
+                            <div class="bg-white p-5 rounded-2xl shadow-sm cursor-pointer transition-transform hover:scale-105" data-group-id="${group.id}">
+                                <div class="flex items-center">
+                                    <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-2xl mr-4">${group.icon}</div>
+                                    <div class="flex-1">
+                                        <h3 class="font-bold text-lg text-gray-800">${group.name}</h3>
+                                        <p class="text-sm text-gray-500">${group.description}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        listEl.innerHTML += groupCard;
+                    });
+                    document.querySelectorAll('[data-group-id]').forEach(card => {
+                        card.addEventListener('click', () => {
+                            state.currentGroupId = parseInt(card.dataset.groupId);
+                            renderGroupDetail();
+                            navigateTo('group-detail-screen');
+                        });
+                    });
+                }
+            }
+
+            function renderGroupDetail() {
+                const group = state.groups.find(g => g.id === state.currentGroupId);
+                document.getElementById('group-detail-title').textContent = group.name;
+                document.getElementById('bank-logo').src = bankLogos[group.bank] || '';
+                document.getElementById('bank-name').textContent = group.bank;
+                document.getElementById('account-number').textContent = group.accountNumber;
+                
+                const groupActivities = state.activities.filter(a => a.groupId === state.currentGroupId);
+                
+                const income = groupActivities.filter(a => a.type === 'project').reduce((sum, p) => sum + p.members.filter(m => m.status === 'paid').reduce((memberSum, m) => memberSum + p.fee, 0), 0);
+                const outcome = groupActivities.filter(a => a.type === 'expense').reduce((sum, e) => sum + e.amount, 0);
+                document.getElementById('group-balance').textContent = `${(income - outcome).toLocaleString()}원`;
+
+                const allMembers = groupActivities.filter(a => a.type === 'project').reduce((acc, p) => {
+                    p.members.forEach(m => { if (!acc.find(am => am.name === m.name)) { acc.push(m); } });
+                    return acc;
+                }, []);
+
+                document.getElementById('member-count').textContent = allMembers.length;
+                const memberListHorizontal = document.getElementById('member-list-horizontal');
+                memberListHorizontal.innerHTML = '';
+                allMembers.slice(0, 5).forEach(member => {
+                    memberListHorizontal.innerHTML += `<div class="flex flex-col items-center space-y-1 w-14 text-center"><div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-600">${member.name.charAt(0)}</div><p class="text-xs text-gray-600 truncate w-full">${member.name}</p></div>`;
+                });
+                if (allMembers.length > 5) {
+                    memberListHorizontal.innerHTML += `<div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center font-bold text-gray-600 self-center">+${allMembers.length - 5}</div>`;
+                }
+                
+                const ongoingProjectsSection = document.getElementById('ongoing-projects-section');
+                const ongoingProjectList = document.getElementById('ongoing-project-list');
+                const ongoingProjects = groupActivities.filter(a => a.type === 'project' && a.members.some(m => m.status === 'unpaid'));
+
+                ongoingProjectList.innerHTML = '';
+                if (ongoingProjects.length > 0) {
+                    ongoingProjectsSection.style.display = 'block';
+                    ongoingProjects.forEach(project => {
+                        const paidCount = project.members.filter(m => m.status === 'paid').length;
+                        const totalCount = project.members.length;
+                        const progress = totalCount > 0 ? (paidCount / totalCount) * 100 : 0;
+                        const currentFee = project.fee * paidCount;
+
+                        const projectCard = `
+                            <div class="bg-white p-5 rounded-2xl shadow-sm cursor-pointer" data-project-id="${project.id}">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h4 class="font-bold text-gray-800">${project.name}</h4>
+                                    <span class="text-sm text-gray-500">${paidCount}/${totalCount}명</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                    <div class="bg-main-blue h-1.5 rounded-full" style="width: ${progress}%"></div>
+                                </div>
+                                <p class="text-right text-sm text-gray-600 mt-2">${currentFee.toLocaleString()}원 모금중</p>
+                            </div>
+                        `;
+                        ongoingProjectList.innerHTML += projectCard;
+                    });
+                } else {
+                    ongoingProjectsSection.style.display = 'none';
+                }
+
+                const activityFeed = document.getElementById('activity-feed');
+                activityFeed.innerHTML = '';
+                if (groupActivities.length === 0) {
+                     activityFeed.innerHTML = `<div class="text-center py-16 bg-white rounded-2xl"><p class="text-gray-500">아직 활동 내역이 없어요.</p><p class="text-gray-500">아래 + 버튼으로 시작해보세요!</p></div>`;
+                     return;
+                }
+                
+                groupActivities.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(activity => {
+                    let activityCard = '';
+                    if (activity.type === 'project') {
+                        const p = activity;
+                        activityCard = `<div class="bg-white p-5 rounded-2xl shadow-sm cursor-pointer" data-project-id="${p.id}">`;
+                    } else { // expense
+                        const e = activity;
+                        activityCard = `<div class="bg-white p-5 rounded-2xl shadow-sm cursor-pointer" data-expense-id="${e.id}">`;
+                    }
+                    
+                    if (activity.type === 'project') {
+                        const p = activity;
+                        const paidAmount = p.members.filter(m => m.status === 'paid').reduce((sum, m) => sum + p.fee, 0);
+                        activityCard += `
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center mr-3"><i class="fas fa-users text-main-blue"></i></div>
+                                    <div>
+                                        <h4 class="font-bold text-gray-800">${p.name}</h4>
+                                        <p class="text-sm text-gray-400">${p.createdAt}</p>
+                                    </div>
+                                </div>
+                                <span class="font-bold text-main-blue">+${paidAmount.toLocaleString()}원</span>
+                            </div>`;
+                    } else { // expense
+                        const e = activity;
+                        activityCard += `
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center mr-3"><i class="fas fa-receipt text-red-500"></i></div>
+                                    <div>
+                                        <h4 class="font-bold text-gray-800">${e.description}</h4>
+                                        <p class="text-sm text-gray-400">${e.createdAt}</p>
+                                    </div>
+                                </div>
+                                <span class="font-bold text-red-500">-${e.amount.toLocaleString()}원</span>
+                            </div>`;
+                    }
+                    activityCard += `</div>`;
+                    activityFeed.innerHTML += activityCard;
+                });
+                
+                document.querySelectorAll('[data-project-id]').forEach(card => {
+                    card.addEventListener('click', () => {
+                        state.currentProjectId = parseInt(card.dataset.projectId);
+                        renderProjectDetailVertical();
+                        navigateTo('project-detail-screen');
+                    });
+                });
+                
+                document.querySelectorAll('[data-expense-id]').forEach(card => {
+                    card.addEventListener('click', () => {
+                        renderExpenseDetail(parseInt(card.dataset.expenseId));
+                    });
+                });
+            }
+
+            function renderProjectDetailVertical(filter = 'all') {
+                const project = state.activities.find(a => a.id === state.currentProjectId);
+                if (!project || project.type !== 'project') return;
+                
+                document.getElementById('project-detail-title').textContent = project.name;
+                document.getElementById('project-link-text').textContent = `.../apply?id=${project.id}`;
+                
+                const paidCount = project.members.filter(m => m.status === 'paid').length;
+                const totalCount = project.members.filter(m => m.status !== 'cancelled').length;
+                const totalFee = project.fee * totalCount;
+                const currentFee = project.fee * paidCount;
+                const progress = totalCount > 0 ? (currentFee / totalFee) * 100 : 0;
+
+                document.getElementById('progress-bar').style.width = `${progress}%`;
+                document.getElementById('progress-text').textContent = `${currentFee.toLocaleString()}원 / ${totalFee.toLocaleString()}원`;
+                document.getElementById('progress-member-text').textContent = `${paidCount}/${totalCount}명`;
+
+                const memberList = document.getElementById('member-list-vertical');
+                memberList.innerHTML = '';
+                
+                const filteredMembers = project.members.filter(m => {
+                    if (filter === 'all') return m.status !== 'cancelled';
+                    return m.status === filter;
+                });
+
+                if (filteredMembers.length === 0) {
+                    memberList.innerHTML = `<div class="text-center py-16"><p class="text-gray-500">해당하는 멤버가 없습니다.</p></div>`;
+                    return;
+                }
+
+                filteredMembers.forEach(member => {
+                    let statusBadge;
+                    switch(member.status) {
+                        case 'paid':
+                            statusBadge = `<div class="text-sm font-bold text-green-600 bg-green-100 px-3 py-1 rounded-full">입금 완료</div>`;
+                            break;
+                        case 'unpaid':
+                            statusBadge = `<div class="text-sm font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">입금 대기</div>`;
+                            break;
+                        case 'cancelled':
+                            statusBadge = `<div class="text-sm font-bold text-red-500 bg-red-100 px-3 py-1 rounded-full">취소</div>`;
+                            break;
+                    }
+                    const memberCard = `
+                        <div class="bg-white p-4 rounded-xl shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="font-bold text-gray-800">${member.name}</p>
+                                <p class="text-sm text-gray-500">입금할 금액: ${member.feeToPay.toLocaleString()}원</p>
+                            </div>
+                            ${statusBadge}
+                        </div>
+                    `;
+                    memberList.innerHTML += memberCard;
+                });
+            }
+
+            function renderNotifications() {
+                const notificationList = document.getElementById('notification-list');
+                notificationList.innerHTML = '';
+                if(state.notifications.length === 0) {
+                    notificationList.innerHTML = `<div class="text-center py-16"><p class="text-gray-500">새로운 알림이 없습니다.</p></div>`;
+                    return;
+                }
+                state.notifications.forEach(notif => {
+                    const notifCard = `
+                        <div class="flex items-start p-4 bg-white rounded-lg">
+                            <div class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 mr-4">
+                                <i class="fas ${notif.icon} ${notif.color}"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-gray-800">${notif.message}</p>
+                                <p class="text-sm text-gray-400 mt-1">${notif.time}</p>
+                            </div>
+                        </div>
+                    `;
+                    notificationList.innerHTML += notifCard;
+                });
+            }
+
+            function renderReport(activityId) {
+                const project = state.activities.find(a => a.type === 'project' && a.id === activityId);
+                if (!project) return;
+
+                const income = project.members.filter(m => m.status === 'paid').reduce((sum, m) => sum + project.fee, 0);
+                const expenses = state.activities.filter(a => a.groupId === project.groupId && a.type === 'expense');
+                const totalExpense = expenses.reduce((sum, e) => sum + e.amount, 0);
+                const balance = income - totalExpense;
+
+                modalContent.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <h2 class="text-2xl font-bold mb-4">정산 보고서</h2>
+                        <button class="close-modal-btn text-2xl text-gray-400">&times;</button>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <p class="text-sm text-gray-500">${project.name} 정산</p>
+                            <p class="text-lg font-bold">최종 잔액: ${balance.toLocaleString()}원</p>
+                        </div>
+                        <div>
+                            <h4 class="font-bold mb-2">수입: ${income.toLocaleString()}원</h4>
+                            <ul class="text-sm space-y-1 pl-2">${project.members.filter(m => m.status === 'paid').map(m => `<li>${m.name}: +${project.fee.toLocaleString()}원</li>`).join('')}</ul>
+                        </div>
+                        <div>
+                            <h4 class="font-bold mb-2">지출: ${totalExpense.toLocaleString()}원</h4>
+                            <ul class="text-sm space-y-1 pl-2">${expenses.map(e => `<li>${e.description}: -${e.amount.toLocaleString()}원</li>`).join('')}</ul>
+                        </div>
+                    </div>
+                `;
+                modal.classList.add('visible');
+            }
+            
+            function renderExpenseDetail(activityId) {
+                const expense = state.activities.find(a => a.type === 'expense' && a.id === activityId);
+                if (!expense) return;
+
+                modalContent.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <h2 class="text-2xl font-bold mb-4">지출 상세 내역</h2>
+                        <button class="close-modal-btn text-2xl text-gray-400">&times;</button>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <p class="text-gray-500">내역</p>
+                            <p class="font-bold text-lg">${expense.description}</p>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <p class="text-gray-500">금액</p>
+                            <p class="font-bold text-lg text-red-500">-${expense.amount.toLocaleString()}원</p>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <p class="text-gray-500">날짜</p>
+                            <p class="font-bold text-lg">${expense.createdAt}</p>
+                        </div>
+                    </div>
+                `;
+                modal.classList.add('visible');
+            }
+
+            function showApplicantForm(projectId) {
+                state.currentProjectId = projectId;
+                const project = state.activities.find(a => a.id === projectId);
+                const group = state.groups.find(g => g.id === project.groupId);
+
+                document.getElementById('applicant-form-title').textContent = project.name;
+                document.getElementById('applicant-form-description').textContent = project.description;
+                document.getElementById('applicant-form-fee').textContent = `참가비: ${project.fee.toLocaleString()}원`;
+                document.getElementById('applicant-form-group').textContent = `주최: ${group.name}`;
+                
+                navigateTo('applicant-form-screen', true);
+            }
+
+            function renderApplicantStatus() {
+                const project = state.activities.find(a => a.id === state.currentProjectId);
+                const applicant = project.members.find(m => m.name === state.currentApplicant.name);
+                
+                document.getElementById('applicant-status-title').textContent = project.name;
+                const contentEl = document.getElementById('applicant-status-content');
+                
+                let statusHTML = '';
+                switch(applicant.status) {
+                    case 'unpaid':
+                        statusHTML = `
+                            <div class="bg-white p-6 rounded-2xl shadow-sm">
+                                <i class="fas fa-check-circle text-green-500 text-5xl mb-4"></i>
+                                <h2 class="text-2xl font-bold mb-2">${applicant.name}님, 신청이 완료되었습니다!</h2>
+                                <p class="text-gray-600 mb-6">아래 계좌로 입금하시면 참가 신청이 최종 확정됩니다.</p>
+                                <div class="bg-gray-100 p-4 rounded-lg text-left">
+                                    <p class="text-sm text-gray-500">입금할 금액</p>
+                                    <p class="text-2xl font-bold text-main-blue">${applicant.feeToPay.toLocaleString()}원</p>
+                                    <p class="text-sm text-gray-500 mt-4">입금 계좌</p>
+                                    <p class="font-semibold">${project.virtualAccountNumber} (하나은행)</p>
+                                </div>
+                                <button id="cancel-application-btn" class="mt-6 w-full bg-red-500 text-white font-bold py-3 rounded-lg">참가 신청 취소</button>
+                            </div>
+                        `;
+                        break;
+                    case 'paid':
+                        statusHTML = `
+                            <div class="bg-white p-6 rounded-2xl shadow-sm">
+                                <i class="fas fa-party-horn text-main-blue text-5xl mb-4"></i>
+                                <h2 class="text-2xl font-bold mb-2">${applicant.name}님, 입금이 확인되었습니다!</h2>
+                                <p class="text-gray-600">행사 당일 즐거운 시간 보내세요!</p>
+                            </div>
+                        `;
+                        break;
+                    case 'cancelled':
+                        statusHTML = `
+                            <div class="bg-white p-6 rounded-2xl shadow-sm">
+                                <i class="fas fa-info-circle text-gray-500 text-5xl mb-4"></i>
+                                <h2 class="text-2xl font-bold mb-2">참가 신청이 취소되었습니다.</h2>
+                                <p class="text-gray-600">다음에 더 좋은 기회로 만나요!</p>
+                            </div>
+                        `;
+                        break;
+                }
+                contentEl.innerHTML = statusHTML;
+                navigateTo('applicant-status-screen', true);
+            }
+
+
+            // --- 이벤트 리스너 ---
+            navButtons.forEach(btn => {
+                btn.addEventListener('click', () => navigateTo(btn.dataset.target));
+            });
+
+            backButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const currentScreenId = document.querySelector('.screen.active').id;
+                    if (['group-detail-screen', 'add-group-screen', 'add-activity-screen', 'applicant-form-screen', 'applicant-status-screen'].includes(currentScreenId)) {
+                        navigateTo('home-screen');
+                    } else if (currentScreenId === 'project-detail-screen') {
+                        renderGroupDetail();
+                        navigateTo('group-detail-screen');
+                    }
+                });
+            });
+            
+            document.getElementById('close-applicant-view-btn').addEventListener('click', () => navigateTo('home-screen'));
+            document.getElementById('close-applicant-status-btn').addEventListener('click', () => navigateTo('home-screen'));
+
+            document.getElementById('add-group-btn').addEventListener('click', () => navigateTo('add-group-screen'));
+            
+            fab.addEventListener('click', () => navigateTo('add-activity-screen'));
+
+            document.getElementById('add-group-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('group-name').value;
+                const desc = document.getElementById('group-desc').value;
+                const bank = document.getElementById('group-bank').value;
+                const accountNumber = document.getElementById('group-account-number').value;
+                const accountHolder = document.getElementById('group-account-holder').value;
+                
+                state.groups.push({ id: state.nextGroupId++, name, description: desc, icon: ['🎉', '🚀', '🌟', '💡', '🤝'][Math.floor(Math.random() * 5)], bank, accountNumber, accountHolder });
+                e.target.reset();
+                renderGroups();
+                navigateTo('home-screen');
+            });
+            
+            document.getElementById('add-project-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = e.target.querySelector('#project-name').value;
+                const fee = parseInt(e.target.querySelector('#project-fee').value);
+                const description = e.target.querySelector('#project-description').value;
+                const membersText = e.target.querySelector('#project-members').value;
+                const members = membersText ? membersText.split(',').map((m, i) => ({ name: m.trim(), feeToPay: fee, status: 'unpaid' })) : [];
+                
+                const newProject = { 
+                    type: 'project', id: state.nextActivityId++, groupId: state.currentGroupId, 
+                    name, fee, members, createdAt: new Date().toISOString().split('T')[0],
+                    virtualAccountNumber: `012-3456-7890-${state.nextActivityId}`,
+                    description: description
+                };
+                state.activities.push(newProject);
+                e.target.reset();
+                renderGroupDetail();
+                navigateTo('group-detail-screen');
+            });
+            
+            document.getElementById('add-expense-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const description = document.getElementById('expense-desc').value;
+                const amount = parseInt(document.getElementById('expense-amount').value);
+                const newExpense = {
+                    type: 'expense', id: state.nextActivityId++, groupId: state.currentGroupId,
+                    description, amount, createdAt: new Date().toISOString().split('T')[0]
+                };
+                state.activities.push(newExpense);
+                e.target.reset();
+                renderGroupDetail();
+                navigateTo('group-detail-screen');
+            });
+
+            document.querySelectorAll('.form-tab-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.form-tab-btn').forEach(b => b.classList.remove('text-main-blue', 'border-main-blue'));
+                    e.currentTarget.classList.add('text-main-blue', 'border-main-blue');
+                    if (e.currentTarget.dataset.form === 'project') {
+                        document.getElementById('add-project-form').classList.remove('hidden');
+                        document.getElementById('add-expense-form').classList.add('hidden');
+                    } else {
+                        document.getElementById('add-project-form').classList.add('hidden');
+                        document.getElementById('add-expense-form').classList.remove('hidden');
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('text-main-blue', 'border-main-blue'));
+                    e.currentTarget.classList.add('text-main-blue', 'border-main-blue');
+                    renderProjectDetailVertical(e.currentTarget.dataset.tab);
+                });
+            });
+            
+            document.getElementById('add-project-member-btn').addEventListener('click', () => {
+                const project = state.activities.find(p => p.id === state.currentProjectId);
+                if (!project) return;
+
+                const newMemberName = prompt('추가할 멤버의 이름을 입력하세요:');
+                if (newMemberName) {
+                    const newMember = {
+                        name: newMemberName,
+                        feeToPay: project.fee,
+                        status: 'unpaid'
+                    };
+                    project.members.push(newMember);
+                    renderProjectDetailVertical();
+                    showToast(`${newMemberName} 님이 프로젝트에 추가되었습니다.`);
+                }
+            });
+
+            document.getElementById('simulate-deposit-btn').addEventListener('click', () => {
+                const project = state.activities.find(p => p.id === state.currentProjectId);
+                if (!project) return;
+                const unpaidMembers = project.members.filter(m => m.status === 'unpaid');
+                if (unpaidMembers.length === 0) {
+                    showToast('모든 멤버가 입금을 완료했습니다!', 'info');
+                    return;
+                }
+                const randomMember = unpaidMembers[Math.floor(Math.random() * unpaidMembers.length)];
+                randomMember.status = 'paid';
+                const currentFilter = document.querySelector('.tab-btn.text-main-blue').dataset.tab;
+                renderProjectDetailVertical(currentFilter);
+                showToast(`✅ ${randomMember.name}님의 입금이 확인되었습니다!`);
+            });
+            
+            document.querySelectorAll('.copy-account-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const container = e.currentTarget.closest('.bg-white');
+                    const accountInfoEl = container.querySelector('p[id*="account-number"]');
+                    const textToCopy = accountInfoEl.textContent;
+                    navigator.clipboard.writeText(textToCopy).then(() => showToast('계좌번호가 복사되었습니다.')).catch(err => showToast('복사에 실패했습니다.', 'error'));
+                });
+            });
+            
+            document.getElementById('copy-project-link-btn').addEventListener('click', () => {
+                const link = `https://modu-chongmu.app/apply?id=${state.currentProjectId}`;
+                navigator.clipboard.writeText(link).then(() => {
+                    showToast('참가 신청 링크가 복사되었습니다.');
+                });
+            });
+            
+            document.getElementById('check-project-link-btn').addEventListener('click', () => {
+                showApplicantForm(state.currentProjectId);
+            });
+
+            document.getElementById('generate-report-btn').addEventListener('click', () => renderReport(state.currentProjectId));
+            
+            modal.addEventListener('click', (e) => {
+                if (e.target.classList.contains('modal-overlay') || e.target.closest('.close-modal-btn')) {
+                    modal.classList.remove('visible');
+                }
+            });
+            
+            document.getElementById('apply-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const project = state.activities.find(p => p.id === state.currentProjectId);
+                const applicantName = document.getElementById('applicant-name').value;
+
+                const existingApplicant = project.members.find(m => m.name === applicantName);
+                if (existingApplicant) {
+                    state.currentApplicant = existingApplicant;
+                } else {
+                    const newMember = {
+                        name: applicantName,
+                        feeToPay: project.fee,
+                        status: 'unpaid'
+                    };
+                    project.members.push(newMember);
+                    state.currentApplicant = newMember;
+                }
+                e.target.reset();
+                renderApplicantStatus();
+            });
+            
+            document.getElementById('applicant-status-content').addEventListener('click', (e) => {
+                if (e.target.id === 'cancel-application-btn') {
+                    if (confirm('정말로 참가 신청을 취소하시겠습니까?')) {
+                        const project = state.activities.find(p => p.id === state.currentProjectId);
+                        const applicant = project.members.find(m => m.name === state.currentApplicant.name);
+                        applicant.status = 'cancelled';
+                        renderApplicantStatus();
+                        showToast('참가 신청이 취소되었습니다.');
+                    }
+                }
+            });
+
+            function showToast(message, type = 'success') {
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-5 left-1/2 -translate-x-1/2 bg-black bg-opacity-70 text-white px-5 py-2 rounded-full text-md shadow-lg transition-all duration-300 animate-pulse';
+                toast.textContent = message;
+                document.body.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translate(-50%, -20px)';
+                    setTimeout(() => toast.remove(), 300);
+                }, 2500);
+            }
+
+            // --- 초기화 ---
+            renderGroups();
+            renderNotifications();
+            fab.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
