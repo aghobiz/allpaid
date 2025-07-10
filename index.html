@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="모임 회비, 정산, 관리까지 한 번에! 모두의 총무">
+    <meta name="keywords" content="모임, 회비, 정산, 총무, 동아리, 학생회">
+    <meta name="author" content="모두의 총무">
+    <meta property="og:title" content="모두의 총무">
+    <meta property="og:description" content="모임 회비, 정산, 관리까지 한 번에!">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://your-username.github.io/your-repo-name/">
+    <title>모두의 총무</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'main-blue': '#00AEFF',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./style.css">
+    <base href="./">
+</head>
+<body class="home-bg">
+    <div id="app" class="max-w-md mx-auto min-h-screen">
+        <main id="main-content" class="p-5 pb-24">
+            <!-- 홈 화면 -->
+            <div id="home-screen" class="screen active">
+                <div class="home-header">
+                    <div class="home-title">모두의 총무</div>
+                    <div class="home-desc">모임 회비, 정산, 관리까지 한 번에!</div>
+                </div>
+                <!-- 주요 기능 버튼들 -->
+                <div class="toss-feature-row">
+                    <div class="toss-feature">
+                        <img src="https://openmoji.org/data/color/svg/1F9FE.svg" width="44" height="44" alt="영수증 등록" />
+                        <span class="toss-feature-label">영수증 등록</span>
+                    </div>
+                    <div class="toss-feature">
+                        <img src="https://openmoji.org/data/color/svg/1F4B0.svg" width="44" height="44" alt="원클릭 회계" />
+                        <span class="toss-feature-label">원클릭 회계</span>
+                    </div>
+                    <div class="toss-feature">
+                        <img src="https://openmoji.org/data/color/svg/1F916.svg" width="44" height="44" alt="총무 도우미" />
+                        <span class="toss-feature-label">총무 도우미</span>
+                    </div>
+                    <div class="toss-feature">
+                        <img src="https://openmoji.org/data/color/svg/1F4CA.svg" width="44" height="44" alt="정산 현황" />
+                        <span class="toss-feature-label">정산 현황</span>
+                    </div>
+                </div>
+                <button id="add-group-btn" class="home-create-btn">
+                    + 모임 만들기
+                </button>
+                <div class="section-title">내가 관리하는 모임</div>
+                <div id="group-list-container"></div>
+            </div>
+
+            <!-- 모임 상세 화면 -->
+            <div id="group-detail-screen" class="screen">
+                <header class="flex items-center mb-6">
+                    <button class="back-btn text-2xl mr-4 text-gray-500"><i class="fas fa-arrow-left"></i></button>
+                    <h1 id="group-detail-title" class="text-3xl font-extrabold text-gray-800"></h1>
+                </header>
+                <div class="bg-white p-6 rounded-2xl shadow-sm mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center">
+                            <img id="bank-logo" src="" alt="Bank Logo" class="w-6 h-6 mr-2 rounded-full object-contain">
+                            <div>
+                                <p id="bank-name" class="text-gray-500 font-semibold"></p>
+                                <p id="account-number" class="text-sm text-gray-400"></p>
+                            </div>
+                        </div>
+                        <button class="copy-account-btn bg-gray-100 text-gray-600 px-3 py-1 rounded-md text-sm font-semibold">복사</button>
+                    </div>
+                    <p id="group-balance" class="text-2xl font-extrabold text-gray-800">0원</p>
+                    <div class="border-t my-4"></div>
+                    <div class="flex space-x-2">
+                        <button class="flex-1 bg-blue-100 text-blue-700 font-bold py-3 rounded-lg">재정감사</button>
+                        <button class="flex-1 bg-main-blue text-white font-bold py-3 rounded-lg">회비 요청</button>
+                    </div>
+                </div>
+                <div id="ongoing-projects-section" class="mb-6" style="display: none;">
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">모금중인 프로젝트</h3>
+                    <div id="ongoing-project-list" class="space-y-2"></div>
+                </div>
+                <div class="mb-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">멤버 <span id="member-count">0</span></h3>
+                    <div id="member-list-horizontal" class="flex space-x-3 overflow-x-auto pb-2"></div>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">전체 활동 내역</h3>
+                    <div id="activity-feed" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <!-- 새 모임 만들기 화면 -->
+            <div id="add-group-screen" class="screen">
+                <header class="flex items-center mb-8">
+                    <button class="back-btn text-2xl mr-4 text-gray-500"><i class="fas fa-arrow-left"></i></button>
+                    <h1 class="text-3xl font-extrabold text-gray-800">새 모임 만들기</h1>
+                </header>
+                <form id="add-group-form" class="space-y-6 pb-20">
+                    <div>
+                        <label for="group-name" class="block text-lg font-bold text-gray-700 mb-2">모임 이름</label>
+                        <input type="text" id="group-name" class="mt-1 block w-full px-4 py-3 bg-white border-transparent rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-main-blue" placeholder="예: 늘봄 중앙동아리" required>
+                    </div>
+                    <div>
+                        <label for="group-desc" class="block text-lg font-bold text-gray-700 mb-2">모임 설명</label>
+                        <input type="text" id="group-desc" class="mt-1 block w-full px-4 py-3 bg-white border-transparent rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-main-blue" placeholder="예: 중앙 기타 동아리">
+                    </div>
+                    <div class="border-t pt-6">
+                        <label for="group-bank" class="block text-lg font-bold text-gray-700 mb-2">연동할 모임통장</label>
+                        <select id="group-bank" class="mt-1 block w-full px-4 py-3 bg-white border-transparent rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-main-blue">
+                            <option>카카오뱅크</option>
+                            <option>토스뱅크</option>
+                            <option>KB국민은행</option>
+                            <option>신한은행</option>
+                            <option>하나은행</option>
+                        </select>
+                        <input type="text" id="group-account-number" class="mt-2 block w-full px-4 py-3 bg-white border-transparent rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-main-blue" placeholder="계좌번호 ('-' 없이 입력)" required>
+                        <input type="text" id="group-account-holder" class="mt-2 block w-full px-4 py-3 bg-white border-transparent rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-main-blue" placeholder="예금주명" required>
+                    </div>
+                    <button type="submit" class="w-full bg-main-blue text-white font-bold py-4 rounded-xl text-lg transition-transform hover:scale-105 fixed bottom-20 left-1/2 -translate-x-1/2 max-w-md w-11/12">저장하기</button>
+                </form>
+            </div>
+
+            <!-- 프로젝트 상세 화면 -->
+            <div id="project-detail-screen" class="screen">
+                <header class="flex items-center justify-between mb-8">
+                    <div class="flex items-center">
+                        <button class="back-btn text-2xl mr-4 text-gray-500"><i class="fas fa-arrow-left"></i></button>
+                        <h1 id="project-detail-title" class="text-3xl font-extrabold text-gray-800"></h1>
+                    </div>
+                </header>
+                <div class="bg-white p-5 rounded-2xl mb-4 shadow-sm">
+                    <h3 class="font-bold text-main-blue mb-3">프로젝트 정보</h3>
+                    <div class="mb-2"><span class="text-sm text-gray-500">가상계좌</span> <span id="project-virtual-account" class="font-semibold"></span></div>
+                    <div class="mb-2"><span class="text-sm text-gray-500">주최</span> <span id="project-group-name" class="font-semibold"></span></div>
+                    <div class="mb-2"><span class="text-sm text-gray-500">문의</span> <span id="project-contact" class="font-semibold"></span></div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl mb-4 shadow-sm">
+                    <h3 class="font-bold text-main-blue mb-3">모집 현황</h3>
+                    <div class="bg-gray-100 p-3 rounded-lg">
+                        <p class="text-sm text-gray-500 mb-1">참가 신청 링크</p>
+                        <div class="flex justify-between items-center">
+                            <p id="project-link-text" class="text-gray-700 font-mono text-sm truncate flex-1" style="direction: rtl; text-align: left;"></p>
+                            <div class="flex space-x-2 ml-2">
+                                <button id="check-project-link-btn" class="bg-main-blue text-white px-3 py-2 rounded-lg text-sm font-bold">확인</button>
+                                <button id="copy-project-link-btn" class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-bold">복사</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl mb-4 shadow-sm">
+                    <h3 class="font-bold text-main-blue mb-3">실시간 정산 현황</h3>
+                    <div class="flex justify-between text-sm font-medium text-gray-700 mb-2">
+                        <span id="progress-text">0원 / 0원</span>
+                        <span id="progress-member-text">0/0명</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div id="progress-bar" class="bg-main-blue h-2.5 rounded-full" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <button id="daily-ledger-btn" class="bg-green-100 text-green-700 font-bold py-4 rounded-xl text-lg flex flex-col items-center justify-center">
+                        <i class="fas fa-book text-2xl mb-1"></i>
+                        <span>일일거래장부</span>
+                    </button>
+                    <button id="settlement-request-btn" class="bg-orange-100 text-orange-700 font-bold py-4 rounded-xl text-lg flex flex-col items-center justify-center">
+                        <i class="fas fa-bell text-2xl mb-1"></i>
+                        <span>정산 요청</span>
+                    </button>
+                </div>
+                <div>
+                    <div class="flex justify-between items-center border-b mb-4">
+                        <div class="flex text-sm">
+                            <button data-tab="all" class="tab-btn py-2 px-3 font-bold text-main-blue border-b-2 border-main-blue whitespace-nowrap">전체</button>
+                            <button data-tab="paid" class="tab-btn py-2 px-3 font-bold text-gray-500 whitespace-nowrap">입금완료</button>
+                            <button data-tab="unpaid" class="tab-btn py-2 px-3 font-bold text-gray-500 whitespace-nowrap">입금대기</button>
+                            <button data-tab="cancelled" class="tab-btn py-2 px-3 font-bold text-gray-500 whitespace-nowrap">취소</button>
+                        </div>
+                        <button id="add-project-member-btn" class="text-main-blue font-bold text-xs"><i class="fas fa-plus-circle mr-1"></i>멤버 추가</button>
+                    </div>
+                    <div id="member-list-vertical" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <!-- 새 활동 추가 화면 -->
+            <div id="add-activity-screen" class="screen">
+                <header class="flex items-center mb-8">
+                    <button class="back-btn text-2xl mr-4 text-gray-500"><i class="fas fa-arrow-left"></i></button>
+                    <h1 class="text-3xl font-extrabold text-gray-800">새 활동 추가</h1>
+                </header>
+                <div class="flex border-b mb-6">
+                    <button data-form="project" class="form-tab-btn flex-1 pb-2 font-bold text-main-blue border-b-2 border-main-blue text-base">프로젝트</button>
+                    <button data-form="expense" class="form-tab-btn flex-1 pb-2 font-bold text-gray-500 text-base">지출</button>
+                </div>
+                <form id="add-project-form" class="space-y-6 pb-20">
+                    <div>
+                        <label for="project-name" class="block text-lg font-bold text-gray-700 mb-2">프로젝트 이름</label>
+                        <input type="text" id="project-name" class="mt-1 block w-full px-4 py-3 bg-white border-transparent rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-main-blue" placeholder="예: 2025 여름 MT" required>
+                    </div>
+                    <div>
+                        <label for="project-fee" class="block text-lg font-bold text-gray-700 mb-2">1인당 회비 (원)</label>
+                        <input type="number" id="project-fee" class="mt-1 block w-full px-4 py-3 bg-white border-transparent rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-main-blue" placeholder="50000" required>
+                    </div>
+                    <div>
+                        <label for="project-description" class="block text-lg font-bold text-gray-700 mb-2">참가 안내 문구</label>
+                        <textarea id="project-description" rows="4" class="mt-1 block w-full px-4 py-3 bg-white border-transparent rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-main-blue" placeholder="예: 선착순 30명, 문의: 김총무(010-1234-5678)"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-main-blue text-white font-bold py-4 rounded-xl text-lg transition-transform hover:scale-105 fixed bottom-20 left-1/2 -translate-x-1/2 max-w-md w-11/12">프로젝트 생성하기</button>
+                </form>
+                <form id="add-expense-form" class="hidden space-y-6 pb-20">
+                    <div>
+                        <label for="expense-desc" class="block text-lg font-bold text-gray-700 mb-2">지출 내역</label>
+                        <input type="text" id="expense-desc" class="mt-1 block w-full px-4 py-3 bg-white border-transparent rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-main-blue" placeholder="예: MT 장보기 (이마트)" required>
+                    </div>
+                    <div>
+                        <label for="expense-amount" class="block text-lg font-bold text-gray-700 mb-2">지출 금액 (원)</label>
+                        <input type="number" id="expense-amount" class="mt-1 block w-full px-4 py-3 bg-white border-transparent rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-main-blue" placeholder="150000" required>
+                    </div>
+                    <button type="submit" class="w-full bg-main-blue text-white font-bold py-4 rounded-xl text-lg transition-transform hover:scale-105 fixed bottom-20 left-1/2 -translate-x-1/2 max-w-md w-11/12">지출 기록하기</button>
+                </form>
+            </div>
+
+            <!-- 알림 화면 -->
+            <div id="notifications-screen" class="screen">
+                <header class="flex items-center mb-8">
+                    <h1 class="text-3xl font-extrabold text-gray-800">알림</h1>
+                </header>
+                <div id="notification-list" class="space-y-2"></div>
+            </div>
+
+            <!-- 마이페이지 화면 -->
+            <div id="my-page-screen" class="screen">
+                <header class="flex items-center mb-8">
+                    <h1 class="text-3xl font-extrabold text-gray-800">마이페이지</h1>
+                </header>
+                <div class="bg-white p-6 rounded-2xl shadow-sm mb-6">
+                    <div class="flex items-center">
+                        <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center text-3xl mr-4">👤</div>
+                        <div>
+                            <p class="text-2xl font-bold text-gray-800">김총무 님</p>
+                            <p class="text-gray-500">modu@chongmu.com</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <a href="#" class="flex items-center justify-between p-4 bg-white rounded-lg text-lg font-semibold text-gray-700"><span><i class="fas fa-bullhorn w-6 mr-2 text-gray-400"></i> 공지사항</span> <i class="fas fa-chevron-right text-gray-400"></i></a>
+                    <a href="#" class="flex items-center justify-between p-4 bg-white rounded-lg text-lg font-semibold text-gray-700"><span><i class="fas fa-headset w-6 mr-2 text-gray-400"></i> 고객센터</span> <i class="fas fa-chevron-right text-gray-400"></i></a>
+                    <a href="#" class="flex items-center justify-between p-4 bg-white rounded-lg text-lg font-semibold text-gray-700"><span><i class="fas fa-file-alt w-6 mr-2 text-gray-400"></i> 이용약관</span> <i class="fas fa-chevron-right text-gray-400"></i></a>
+                    <a href="#" class="flex items-center justify-between p-4 bg-white rounded-lg text-lg font-semibold text-gray-700"><span><i class="fas fa-sign-out-alt w-6 mr-2 text-gray-400"></i> 로그아웃</span> <i class="fas fa-chevron-right text-gray-400"></i></a>
+                </div>
+            </div>
+            <!-- 이하 기존 알림, 마이페이지, 신청 등 screen 구조도 필요시 추가 -->
+            <!-- 참가신청 폼 모달 -->
+            <div id="applicant-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+              <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-lg">
+                <div class="flex justify-between items-center mb-4">
+                  <h2 id="applicant-form-title" class="text-2xl font-bold"></h2>
+                  <button class="close-modal-btn text-2xl text-gray-400">&times;</button>
+                </div>
+                <p id="applicant-form-description" class="mb-2 text-gray-700"></p>
+                <p id="applicant-form-fee" class="mb-2 text-main-blue font-bold"></p>
+                <p id="applicant-form-group" class="mb-4 text-gray-500"></p>
+                <form id="apply-form" class="space-y-4">
+                  <input type="text" id="applicant-name" class="w-full px-4 py-3 bg-gray-100 rounded-lg" placeholder="이름" required>
+                  <button type="submit" class="w-full bg-main-blue text-white font-bold py-3 rounded-lg">신청하기</button>
+                </form>
+              </div>
+            </div>
+            <!-- 모달 구조 추가 -->
+            <div id="detail-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+              <div id="modal-content-area" class="bg-white rounded-2xl p-6 max-w-md w-full shadow-lg"></div>
+            </div>
+            <!-- 신청자 전용 화면 -->
+            <div id="apply-screen" class="screen">
+              <header class="flex items-center justify-between mb-8">
+                <h1 id="apply-form-title" class="text-3xl font-extrabold text-gray-800"></h1>
+                <button class="close-apply-btn text-2xl text-gray-400"><i class="fas fa-times"></i></button>
+              </header>
+              <div class="bg-white p-6 rounded-2xl shadow-sm mb-6">
+                <p id="apply-form-date" class="mb-2 text-gray-500"></p>
+                <div id="apply-form-description" class="mb-4 text-gray-700 whitespace-pre-line"></div>
+                <div class="mb-4">
+                  <span class="block text-sm text-gray-500">참가비</span>
+                  <span id="apply-form-fee" class="text-xl font-bold text-main-blue"></span>
+                </div>
+                <div class="mb-4">
+                  <span class="block text-sm text-gray-500">입금 계좌</span>
+                  <span id="apply-form-account" class="font-semibold"></span>
+                </div>
+                <div class="mb-4">
+                  <span class="block text-sm text-gray-500">주최</span>
+                  <span id="apply-form-group" class="font-semibold"></span>
+                </div>
+                <div class="mb-4">
+                  <span class="block text-sm text-gray-500">문의</span>
+                  <span id="apply-form-contact" class="font-semibold"></span>
+                </div>
+                <form id="apply-form-spa" class="space-y-4 mt-6">
+                  <input type="text" id="apply-applicant-name" class="w-full px-4 py-3 bg-gray-100 rounded-lg" placeholder="이름" required>
+                  <input type="text" id="apply-applicant-contact" class="w-full px-4 py-3 bg-gray-100 rounded-lg" placeholder="연락처(휴대폰 번호)" required>
+                  <button type="submit" class="w-full bg-main-blue text-white font-bold py-3 rounded-lg">신청하기</button>
+                </form>
+              </div>
+            </div>
+        </main>
+        <button id="add-activity-fab" class="fab bg-main-blue text-white w-16 h-16 rounded-full shadow-lg flex items-center justify-center text-3xl transition-transform hover:rotate-90">
+            <i class="fas fa-plus"></i>
+        </button>
+        <nav id="main-nav" class="fixed bottom-0 left-1/2 -translate-x-1/2 max-w-md w-full bg-white/80 backdrop-blur-sm border-t border-gray-200 flex justify-around py-2">
+            <button data-target="home-screen" class="nav-btn flex flex-col items-center w-20 text-main-blue">
+                <i class="fas fa-home text-2xl"></i>
+                <span class="text-xs font-bold mt-1">홈</span>
+            </button>
+            <button data-target="notifications-screen" class="nav-btn flex flex-col items-center w-20 text-gray-400">
+                <i class="fas fa-bell text-2xl"></i>
+                <span class="text-xs font-bold mt-1">알림</span>
+            </button>
+            <button data-target="my-page-screen" class="nav-btn flex flex-col items-center w-20 text-gray-400">
+                <i class="fas fa-user text-2xl"></i>
+                <span class="text-xs font-bold mt-1">마이페이지</span>
+            </button>
+        </nav>
+    </div>
+    <script src="./app.js"></script>
+</body>
+</html> 
