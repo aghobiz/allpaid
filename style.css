@@ -30,6 +30,30 @@ body {
 .text-main-blue { color: #00AEFF; }
 .border-main-blue { border-color: #00AEFF; }
 
+/* 탭 버튼 모바일 최적화 */
+.tab-btn {
+    white-space: nowrap;
+    min-width: 0;
+    flex-shrink: 0;
+}
+
+.form-tab-btn {
+    white-space: nowrap;
+    min-width: 0;
+}
+
+@media (max-width: 480px) {
+    .tab-btn {
+        font-size: 0.75rem;
+        padding: 0.5rem 0.25rem;
+    }
+    
+    .form-tab-btn {
+        font-size: 0.875rem;
+        padding-bottom: 0.5rem;
+    }
+}
+
 .modal-overlay {
     position: fixed;
     top: 0;
