@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('모두의 총무 앱이 시작되었습니다!');
+    console.log('allpaid(올페이드) 앱이 시작되었습니다!');
     
     // 에러 처리
     window.addEventListener('error', (e) => {
@@ -751,7 +751,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const copyProjectLinkBtn = document.getElementById('copy-project-link-btn');
     if (copyProjectLinkBtn) {
         copyProjectLinkBtn.addEventListener('click', () => {
-            const link = `https://modu-chongmu.app/apply?id=${state.currentProjectId}`;
+            const link = `https://allpaid.app/apply?id=${state.currentProjectId}`;
             navigator.clipboard.writeText(link).then(() => {
                 showToast('참가 신청 링크가 복사되었습니다.');
             });
